@@ -55,7 +55,7 @@ async def generate_quote_image_api(
     except:
         author_font = ImageFont.load_default()
 
-    quote_text = f'"{quote}"'
+    quote_text = f'"{quote.replace('\n', ' '*50)}"'
     author_text = f"- {author}"
 
     avg_char_width = sum(quote_font.getlength(c) for c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") / 52
