@@ -3,6 +3,7 @@ from tkinter import ttk, filedialog, messagebox
 from tkinter.filedialog import asksaveasfilename
 from PIL import Image, ImageTk
 import pywinstyles
+import threading
 import requests
 import sv_ttk
 import json
@@ -11,6 +12,10 @@ import os
 
 CONFIG_FILE = "config.json"
 API_URL = "http://127.0.0.1:8000/generate-quote-image/"
+
+def start_api():
+    threading.Thread(target=lambda: os.system('uvicorn main:app --reload'), daemon=True).start()
+
 
 def load_config():
     if not os.path.exists(CONFIG_FILE):
@@ -51,7 +56,7 @@ class QuoteGeneratorApp:
         self.config = load_config()
         self.root = root
         self.root.title("Quote Image Generator")
-        self.root.geometry("700x700")
+        self.root.resizable(False, False)
 
         self.quote_var = tk.StringVar()
         self.author_var = tk.StringVar()
@@ -89,13 +94,22 @@ class QuoteGeneratorApp:
         self.font_dropdown.pack(fill="x", pady=5)
 
         ttk.Button(sidebar_frame, text="Select background image", command=self.select_background).pack(fill="x", pady=5)
-        ttk.Button(sidebar_frame, text="Add font file", command=self.select_font).pack(fill="x", pady=5)
+        ttk.Button(sidebar_frame, text="Add font file", command=self.select_font).pack(fill="x", pady=(5, 0))
 
-        self.action_button = ttk.Button(image_frame, text="Generate Image", command=self.send_request)
+        self.action_button = ttk.Button(image_frame, text="Generate/Save Image", command=self.send_request)
         self.action_button.pack(fill="x", pady=5)
 
         self.image_label = ttk.Label(image_frame)
-        self.image_label.pack(pady=10)
+        self.image_label.pack(pady=(10, 0))
+
+        if len(self.config["authors"]) > 0:
+            self.author_dropdown.current(0)
+
+        if len(self.config["fonts"]) > 0:
+            self.font_dropdown.current(0)
+
+        if os.path.isfile("last_result.png"):
+            self.display_image('last_result.png')
 
     def select_background(self):
         path = filedialog.askopenfilename(title="Choose background image", filetypes=[("PNG", "*.png")])
@@ -174,14 +188,14 @@ class QuoteGeneratorApp:
                 self.last_inputs = current_inputs
                 self.display_image(self.generated_image_path)
 
-                self.action_button.config(text="Save Image")
+                self.action_button.config(text="Generate/Save Image")
             else:
                 messagebox.showerror("API Error", response.text)
         except Exception as e:
             messagebox.showerror("Connection Error", str(e))
 
     def display_image(self, path):
-        img = Image.open(path).resize((400, 400))
+        img = Image.open(path).resize((340, 340))
         tk_img = ImageTk.PhotoImage(img)
         self.image_label.configure(image=tk_img)
         self.image_label.image = tk_img
