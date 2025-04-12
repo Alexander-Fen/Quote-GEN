@@ -23,7 +23,7 @@ A Python application that generates beautiful quote images with custom fonts, ba
 1. Clone the repository:
    ```bash
    git clone https://github.com/Alexander-Fen/Quote-GEN.git
-   cd quote-image-generator
+   cd Quote-GEN
    ```
 
 2. Install the required dependencies:
